@@ -1,6 +1,6 @@
 import polyline from "@mapbox/polyline";
 
-export async function getStravaActivities(): Promise<[number, number][]> {
+export async function getStravaActivities(activityCount: number): Promise<[number, number][]> {
   try {
     const tokenRes = await fetch("https://www.strava.com/oauth/token", {
       method: "POST",
