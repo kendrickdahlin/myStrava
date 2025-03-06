@@ -6,6 +6,7 @@ const CLIENT_ID=128406
 const CLIENT_SECRET=`2364231d16fad6e8b46d57823599066b6621d331`
 const REFRESH_TOKEN =`aebb1d75f5871d0e045fe713ff69ca807b65d35b`
 
+
 export async function getStravaData() {
   try {
     // Get a new access token using the refresh token
