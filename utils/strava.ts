@@ -1,44 +1,32 @@
-import polyline from "@mapbox/polyline";
+export type StravaActivity = {
+  id: number;
+  name: string;
+  distance: number; // In meters
+  date: string;
+  coordinates: [number, number][]; // Array of lat/lng pairs
+};
 
-export async function getStravaActivities(activityCount: number): Promise<[number, number][]> {
+export async function getStravaActivities(count: number): Promise<StravaActivity[]> {
   try {
-    const tokenRes = await fetch("https://www.strava.com/oauth/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        // client_id: process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID,
-        // client_secret: process.env.NEXT_PUBLIC_STRAVA_CLIENT_SECRET,
-        // refresh_token: process.env.NEXT_PUBLIC_STRAVA_REFRESH_TOKEN,
-        client_id:128406,
-        client_secret: `2364231d16fad6e8b46d57823599066b6621d331`,
-        refresh_token: `aebb1d75f5871d0e045fe713ff69ca807b65d35b`,
-        grant_type: "refresh_token",
-      }),
-    });
+    const response = await fetch("/api/strava?limit=" + count);
+    const data = await response.json();
 
-    const tokenData = await tokenRes.json();
-    if (!tokenData.access_token) throw new Error("Failed to get access token");
-
-    const activitiesRes = await fetch(
-      "https://www.strava.com/api/v3/athlete/activities?per_page=5",
-      {
-        headers: { Authorization: `Bearer ${tokenData.access_token}` },
-      }
-    );
-
-    const activities = await activitiesRes.json();
-
-    if (activities.length > 0 && activities[0].map?.summary_polyline) {
-      const decodedPolyline: [number, number][] = polyline.decode(
-        activities[0].map.summary_polyline
-      ) as [number, number][]; // ✅ Explicitly cast to correct type
-
-      return decodedPolyline;
-    }
-
-    return [];
+    return data.map((activity: any) => ({
+      id: activity.id,
+      name: activity.name,
+      distance: activity.distance,
+      date: activity.start_date,
+      coordinates: activity.map.summary_polyline ? decodePolyline(activity.map.summary_polyline) : [],
+    }));
   } catch (error) {
-    console.error("Error fetching Strava data:", error);
+    console.error("Error fetching Strava activities:", error);
     return [];
   }
+}
+
+// Function to decode Strava polyline into lat/lng pairs
+function decodePolyline(polyline: string): [number, number][] {
+  // Import polyline decoder (install with `npm install polyline`)
+  const polylineDecoder = require("@mapbox/polyline");
+  return polylineDecoder.decode(polyline);
 }
