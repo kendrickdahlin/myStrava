@@ -1,32 +1,85 @@
-export type StravaActivity = {
-  id: number;
-  name: string;
-  distance: number; // In meters
-  date: string;
-  coordinates: [number, number][]; // Array of lat/lng pairs
-};
+import polyline from "@mapbox/polyline";
+export async function fetchActivities(page: number): Promise<StravaActivity[]> {
+  console.log(`Fetching activities for page: ${page}`);
 
-export async function getStravaActivities(count: number): Promise<StravaActivity[]> {
   try {
-    const response = await fetch("/api/strava?limit=" + count);
+    const response = await fetch(`/api/strava?page=${page}&per_page=5`);
     const data = await response.json();
+
+    console.log("API Response:", data);
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
 
     return data.map((activity: any) => ({
       id: activity.id,
       name: activity.name,
       distance: activity.distance,
       date: activity.start_date,
-      coordinates: activity.map.summary_polyline ? decodePolyline(activity.map.summary_polyline) : [],
+      coordinates: activity.map?.summary_polyline
+        ? decodePolyline(activity.map.summary_polyline)
+        : [],
     }));
   } catch (error) {
-    console.error("Error fetching Strava activities:", error);
+    console.error("Error fetching activities:", error);
     return [];
   }
 }
 
-// Function to decode Strava polyline into lat/lng pairs
-function decodePolyline(polyline: string): [number, number][] {
-  // Import polyline decoder (install with `npm install polyline`)
-  const polylineDecoder = require("@mapbox/polyline");
-  return polylineDecoder.decode(polyline);
+export function decodePolyline(encoded: string): [number, number][] {
+  return polyline.decode(encoded);
+}
+
+// Function to Refresh Access Token
+export async function refreshAccessToken(): Promise<string> {
+  console.log("Refreshing access token...");
+
+  const response = await fetch("https://www.strava.com/oauth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      client_id: process.env.STRAVA_CLIENT_ID,
+      client_secret: process.env.STRAVA_CLIENT_SECRET,
+      grant_type: "refresh_token",
+      refresh_token: process.env.STRAVA_REFRESH_TOKEN,
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) throw new Error("Failed to refresh access token");
+
+  console.log("New Access Token:", data.access_token);
+
+  return data.access_token;
+}
+
+export type StravaActivity = {
+  id: number;
+  name: string;
+  distance: number; // Distance in meters
+  date: string; // ISO date string
+  coordinates?: [number, number][]; // Optional GPS coordinates
+  intervals?: { duration: number; distance: number }[]; // Optional intervals
+};
+
+export async function fetchLaps(activityId: number): Promise<any[]> {
+  try {
+    const response = await fetch(`/api/strava/laps?activityId=${activityId}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching laps: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch laps: ", error);
+    return [];
+  }
+}
+
+// Extract intervals from laps data
+export function extractIntervalsFromLaps(laps: any[]): { duration: number, distance: number }[] {
+  return laps.map(lap => ({
+    duration: lap.moving_time,
+    distance: lap.distance,
+  }));
 }
