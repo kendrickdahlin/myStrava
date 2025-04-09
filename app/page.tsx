@@ -84,7 +84,7 @@ export default function ActivitiesList() {
           href={`https://www.strava.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_STRAVA_CLIENT_ID}&response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/callback&approval_prompt=force&scope=read,activity:read_all`}
           className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg"
         >
-          Connect with Strava
+          Connect to Strava
         </a>
       </div>
     );
