@@ -1,6 +1,11 @@
 import polyline from "@mapbox/polyline";
+import { cachedDataVersionTag } from "v8";
+export const PERSONAL_ACCESS_TOKEN = process.env.NEXT_PUBLIC_STRAVA_ACCESS_TOKEN!;
 
 export type StravaActivity = {
+  start_date: string;
+  elapsed_time: any;
+  moving_time: any;
   showMap: any;
   id: number;
   name: string;
@@ -45,8 +50,24 @@ export function decodePolyline(encoded: string): [number, number][] {
   return polyline.decode(encoded);
 }
 
-// Function to Refresh Access Token
-export async function refreshAccessToken(): Promise<string> {
+let cachedAccessToken: string | null = null;
+// Returns a cached access token if available, otherwise fetches a new one
+// and caches it for future use.
+export async function getAccessToken(): Promise<string> {
+  console.log("client_id:", process.env.STRAVA_CLIENT_ID ?? "NOT FOUND");
+
+  console.log("ID:", process.env.STRAVA_CLIENT_ID);
+  console.log("SECRET:", process.env.STRAVA_CLIENT_SECRET);
+  console.log("REFRESH:", process.env.STRAVA_REFRESH_TOKEN);
+
+  const clientId = "12345"; // manually paste your values
+  const secret = "abc123";
+  const refreshToken = "xxx";
+
+console.log("Test values:", clientId, secret, refreshToken);
+
+
+  if (cachedAccessToken) return cachedAccessToken;
   console.log("Refreshing access token...");
 
   const response = await fetch("https://www.strava.com/oauth/token", {
@@ -61,11 +82,14 @@ export async function refreshAccessToken(): Promise<string> {
   });
 
   const data = await response.json();
-  if (!response.ok) throw new Error("Failed to refresh access token");
 
-  console.log("New Access Token:", data.access_token);
+  if (!data.access_token) {
+    console.error("Failed to refresh token:", data);
+    throw new Error("Could not refresh token");
+  }
 
-  return data.access_token;
+  cachedAccessToken = data.access_token;
+  return cachedAccessToken!;
 }
 
 
