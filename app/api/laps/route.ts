@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { refreshAccessToken } from "@/utils/strava";
 
+let accessToken = process.env.STRAVA_ACCESS_TOKEN;
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const activityId = searchParams.get("activityId");
+
+  const page = searchParams.get("page") || "1";
 
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
 
@@ -16,7 +20,7 @@ export async function GET(req: NextRequest) {
   console.log("Fetching laps for activity ID:", activityId);
 
   try {
-    const response = await fetch(
+    let response = await fetch(
       `https://www.strava.com/api/v3/activities/${activityId}/laps`,
       {
         headers: {
@@ -24,6 +28,16 @@ export async function GET(req: NextRequest) {
         },
       }
     );
+    if (response.status === 401) {
+          console.log("Access token expired, refreshing...");
+          accessToken = await refreshAccessToken();
+          response = await fetch(
+            `https://www.strava.com/api/v3/activities/${activityId}/laps`,
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
+          );
+        }
 
     if (!response.ok) {
       const error = await response.text();

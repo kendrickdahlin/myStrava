@@ -53,44 +53,7 @@ export function decodePolyline(encoded: string): [number, number][] {
 let cachedAccessToken: string | null = null;
 // Returns a cached access token if available, otherwise fetches a new one
 // and caches it for future use.
-export async function getAccessToken(): Promise<string> {
-  console.log("client_id:", process.env.STRAVA_CLIENT_ID ?? "NOT FOUND");
 
-  console.log("ID:", process.env.STRAVA_CLIENT_ID);
-  console.log("SECRET:", process.env.STRAVA_CLIENT_SECRET);
-  console.log("REFRESH:", process.env.STRAVA_REFRESH_TOKEN);
-
-  const clientId = "12345"; // manually paste your values
-  const secret = "abc123";
-  const refreshToken = "xxx";
-
-console.log("Test values:", clientId, secret, refreshToken);
-
-
-  if (cachedAccessToken) return cachedAccessToken;
-  console.log("Refreshing access token...");
-
-  const response = await fetch("https://www.strava.com/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      client_id: process.env.STRAVA_CLIENT_ID,
-      client_secret: process.env.STRAVA_CLIENT_SECRET,
-      grant_type: "refresh_token",
-      refresh_token: process.env.STRAVA_REFRESH_TOKEN,
-    }),
-  });
-
-  const data = await response.json();
-
-  if (!data.access_token) {
-    console.error("Failed to refresh token:", data);
-    throw new Error("Could not refresh token");
-  }
-
-  cachedAccessToken = data.access_token;
-  return cachedAccessToken!;
-}
 
 
 export async function fetchLaps(activityId: number, token: string): Promise<any[]> {
@@ -119,4 +82,25 @@ export function extractIntervalsFromLaps(laps: any[]): { duration: number, dista
     duration: lap.moving_time,
     distance: lap.distance,
   }));
+}
+
+export function refreshAccessToken(): Promise<string> {
+  console.log("Refreshing access token with refresh()");
+  return fetch("https://www.strava.com/oauth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      client_id: process.env.STRAVA_CLIENT_ID,
+      client_secret: process.env.STRAVA_CLIENT_SECRET,
+      grant_type: "refresh_token",
+      refresh_token: process.env.STRAVA_REFRESH_TOKEN,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (!data.access_token) {
+        throw new Error("Failed to refresh access token");
+      }
+      return data.access_token;
+    });
 }

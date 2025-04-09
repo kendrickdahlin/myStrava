@@ -8,7 +8,6 @@ import {
   extractIntervalsFromLaps,
   StravaActivity,
   PERSONAL_ACCESS_TOKEN,
-  getAccessToken,
 } from "@/utils/strava";
 import { formatDuration, formatPace } from "@/utils/format";
 
@@ -27,7 +26,7 @@ export default function ActivitiesList() {
   const loadMoreActivities = async () => {
     setLoading(true);
     try {
-      const token = await getAccessToken();
+      const token = PERSONAL_ACCESS_TOKEN;
 
       const newActivities = await fetchActivities(page, token);
       const enrichedActivities = await Promise.all(
