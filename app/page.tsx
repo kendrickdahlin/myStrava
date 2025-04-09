@@ -28,10 +28,10 @@ export default function ActivitiesList() {
     try {
       const token = PERSONAL_ACCESS_TOKEN;
 
-      const newActivities = await fetchActivities(page, token);
+      const newActivities = await fetchActivities(page);
       const enrichedActivities = await Promise.all(
         newActivities.map(async (activity) => {
-          const laps = await fetchLaps(activity.id, token);
+          const laps = await fetchLaps(activity.id);
           const intervals = extractIntervalsFromLaps(laps);
           return {
             ...activity,
@@ -109,7 +109,7 @@ export default function ActivitiesList() {
                 <button
                   className="mt-2 px-2 py-1 text-sm bg-blue-500 text-white rounded"
                   onClick={async () => {
-                    const laps = await fetchLaps(activity.id, PERSONAL_ACCESS_TOKEN);
+                    const laps = await fetchLaps(activity.id);
                     const intervals = extractIntervalsFromLaps(laps);
                     setActivities((prev) =>
                       prev.map((act, i) =>

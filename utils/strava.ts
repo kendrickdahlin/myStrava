@@ -16,12 +16,12 @@ export type StravaActivity = {
   lapCount?: number;
 };
 
-export async function fetchActivities(page: number, token: string): Promise<StravaActivity[]> {
+export async function fetchActivities(page: number): Promise<StravaActivity[]> {
   console.log(`Fetching activities for page: ${page}`);
   try {
     const response = await fetch(`/api/strava?page=${page}&per_page=5`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${process.env.STRAVA_ACCESS_TOKEN}`,
       },
     });
     const data = await response.json();
@@ -56,11 +56,11 @@ let cachedAccessToken: string | null = null;
 
 
 
-export async function fetchLaps(activityId: number, token: string): Promise<any[]> {
+export async function fetchLaps(activityId: number): Promise<any[]> {
   try {
     const response = await fetch(`/api/laps?activityId=${activityId}`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${process.env.STRAVA_ACCESS_TOKEN}`,
       },
     });
     
