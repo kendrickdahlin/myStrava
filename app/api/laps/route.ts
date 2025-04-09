@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   if (!activityId) {
     return NextResponse.json({ error: "Missing activity ID" }, { status: 400 });
   }
-
+  console.log("Fetching laps for activity ID:", activityId);
   try {
     const response = await fetch(
       `https://www.strava.com/api/v3/activities/${activityId}/laps`,
