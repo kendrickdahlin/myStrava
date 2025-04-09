@@ -6,8 +6,6 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const activityId = searchParams.get("activityId");
 
-  const page = searchParams.get("page") || "1";
-
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
 
   if (!activityId || !token) {
